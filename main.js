@@ -1,3 +1,7 @@
+document.addEventListener('DOMContentLoaded', () => {
+    const container = document.getElementById('container');
+    const likedPosts = []; // Array per memorizzare gli ID dei post ai quali è stato messo "Mi Piace"
+
 const posts = [
     {
         "id": 1,
@@ -55,3 +59,67 @@ const posts = [
         "created": "2021-03-05"
     }
 ];
+ // Crea e aggiunge ogni post al contenitore
+ posts.forEach(({ id, content, media, author, likes, created }) => {
+    const initials = author.name.split(' ').map(n => n[0]).join(''); // Calcola le iniziali del nome
+
+    container.innerHTML += `
+        <div class="post">
+            <div class="post__header">
+                <div class="post-meta">
+                    <div class="post-meta__icon">
+                        ${author.image 
+                            ? `<img class="profile-pic" src="${author.image}" alt="${author.name}">`
+                            : `<div class="profile-pic-default"><span>${initials}</span></div>`
+                        }
+                    </div>
+                    <div class="post-meta__data">
+                        <div class="post-meta__author">${author.name}</div>
+                        <div class="post-meta__time">${timeAgo(created)}</div>
+                    </div>
+                </div>
+            </div>
+            <div class="post__text">${content}</div>
+            ${media ? `<div class="post__image"><img src="${media}" alt=""></div>` : ''}
+            <div class="post__footer">
+                <div class="likes js-likes">
+                    <div class="likes__cta">
+                        <a href="#" class="like-button js-like-button" data-postid="${id}">
+                            <i class="like-button__icon fas fa-thumbs-up" aria-hidden="true"></i>
+                            <span class="like-button__label">Mi Piace</span>
+                        </a>
+                    </div>
+                    <div class="likes__counter">
+                        Piace a <b id="like-counter-${id}" class="js-likes-counter">${likes}</b> persone
+                    </div>
+                </div>
+            </div>
+        </div>
+    `;
+});
+
+// Funzione "Mi Piace"
+container.addEventListener('click', event => {
+    if (event.target.closest('.js-like-button')) {
+        event.preventDefault();
+        const likeButton = event.target.closest('.js-like-button');
+        const postId = likeButton.dataset.postid;
+        const likeCounterElement = document.getElementById(`like-counter-${postId}`);
+        const currentLikes = parseInt(likeCounterElement.textContent);
+
+        if (!likeButton.classList.contains('like-button--liked')) {
+            likeButton.classList.add('like-button--liked');
+            likeCounterElement.textContent = currentLikes + 1;
+            likedPosts.push(postId);
+        }
+    }
+});
+
+console.log("Posts liked:", likedPosts);
+
+// Funzione per calcolare il tempo
+function timeAgo(date) {
+    const diff = (new Date() - new Date(date)) / (1000 * 60 * 60 * 24);
+    return diff < 1 ? 'Oggi' : diff < 2 ? 'Ieri' : diff < 30 ? `${Math.floor(diff)} giorni fa` : diff < 60 ? '1 mese fa' : `${Math.floor(diff / 30)} mesi fa`;
+}
+});
